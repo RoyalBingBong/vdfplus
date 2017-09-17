@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <div>
+    <textarea name="in" id="in" cols="80" rows="20"></textarea>
+    <button id="parse">toJson</button>
+  </div>
+  <div>
+    <textarea name="out" id="out" cols="80" rows="20"></textarea>
+    <button id="stringify">toVDF</button>
+  </div>  
+  <script src="../lib/vdfplus.web.min.js"></script>
+  <script>
+    let parse = document.getElementById("parse")
+    let stringify = document.getElementById("stringify")
+
+    let input = document.getElementById("in")
+    let output = document.getElementById("out")
+
+    parse.onclick = (e) => {
+      let vdf = VDF.parse(input.value)
+      output.value = JSON.stringify(vdf, null, 2)
+    }
+    stringify.onclick = (e) => {
+      let json = JSON.parse(output.value)
+      input.value = VDF.stringify(json)
+    }
+  </script>
+  
+</body>
+</html>

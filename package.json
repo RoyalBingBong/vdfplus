@@ -1,0 +1,38 @@
+{
+  "name": "vdfplus",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/vdfplus.js",
+  "bin": "lib/vdfplus.cli.js",
+  "types": "lib/vdfplus.d.ts",
+  "scripts": {
+    "web": "browserify lib/vdfplus.js -s VDF > lib/vdfplus.web.js",
+    "postweb": "uglifyjs lib/vdfplus.web.js -c -o lib/vdfplus.web.min.js",
+    "tsc": "tsc",
+    "tsc:w": "tsc -w",
+    "test": "ts-node node_modules/tape/bin/tape test/**/*.ts | tap-summary",
+    "testcli": "ts-node node_modules/tape/bin/tape test/vdfplus.cli.test.ts",
+    "test:raw": "ts-node node_modules/tape/bin/tape test/**/*.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/commander": "^2.9.2",
+    "@types/mkdirp": "^0.5.1",
+    "@types/node": "^8.0.28",
+    "@types/rimraf": "^2.0.2",
+    "@types/tape": "^4.2.30",
+    "browserify": "^14.4.0",
+    "rimraf": "^2.6.2",
+    "tap-summary": "^4.0.0",
+    "tape": "^4.8.0",
+    "ts-node": "^3.3.0",
+    "typescript": "^2.5.2",
+    "uglify-es": "^3.1.1"
+  },
+  "dependencies": {
+    "commander": "^2.11.0",
+    "mkdirp": "^0.5.1"
+  }
+}
