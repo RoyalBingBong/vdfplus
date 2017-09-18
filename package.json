@@ -17,7 +17,13 @@
     "testcli": "ts-node node_modules/tape/bin/tape test/vdfplus.cli.test.ts",
     "test:raw": "ts-node node_modules/tape/bin/tape test/**/*.ts"
   },
-  "keywords": ["valve", "vdf", "keyvalue", "json", "cli"],
+  "keywords": [
+    "valve",
+    "vdf",
+    "keyvalue",
+    "json",
+    "cli"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
