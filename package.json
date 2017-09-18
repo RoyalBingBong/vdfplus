@@ -6,6 +6,7 @@
   "bin": "lib/vdfplus.cli.js",
   "types": "lib/vdfplus.d.ts",
   "scripts": {
+    "prepublish": "npm run build",
     "clean": "rimraf lib/",
     "build": "npm run clean && npm run tsc && npm run web",
     "web": "browserify lib/vdfplus.js -s VDF > lib/vdfplus.web.js",
