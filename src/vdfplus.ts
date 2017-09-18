@@ -4,7 +4,14 @@ const TYPEEX = {
   BOOLEAN: /true|false/i,
 }
 
-function parse(str: string, types = true): object {
+/**
+ * Convert a VDF string into a JavaScript Object
+ * 
+ * @param {string} str VDF string that will be parsed into an object
+ * @param {boolean} [types=true]  Set data type casting
+ * @returns {object} Resulting object
+ */
+export function parse(str: string, types = true): object {
   if (typeof str != "string") {
     throw new TypeError(
       `Expecting parameter to be string, received ${typeof str}`
@@ -35,7 +42,7 @@ function _parse(str: string, types = true, currentLine: number): object {
     let char = str[i]
     if (char == '"') {
       if (!openBracket) {
-        // Allow escaped qutoes inside tokens
+        // Allow escaped quotes inside tokens
         if (str[i - 1] && str[i - 1] == "\\") {
           if (expectKey) {
             currentKey += char
@@ -95,7 +102,9 @@ function _parse(str: string, types = true, currentLine: number): object {
            * value-token just closed with } or "
            * looking for key-token
            */
-          throw new SyntaxError(`Unexpected token ${char} in VDF in line ${line}`)
+          throw new SyntaxError(
+            `Unexpected token ${char} in VDF in line ${line}`
+          )
         }
         if (expectValue && !openBracket) {
           openBracket = true
@@ -193,41 +202,74 @@ function _parse(str: string, types = true, currentLine: number): object {
   return obj
 }
 
-function stringify(value: any, space?: number | string, seperator?: string) {
+/**
+ * Convert a JavaScript object to a VDF string
+ * 
+ * @param {*} value A JavaScript object to be converted
+ * @param {(number | string)} [indentation=2] Indentation of whitespace characters. Accepts numbers or a string containing whitespace characters. Strings longer than 10 characters will be cut off. If an empty string is passed, the output will omit line breaks
+ * @param {string} [separator="\t"] Separator character in between key-value pairs. Accepts number or a string containing whitespace characters. 
+ * @returns 
+ */
+export function stringify(
+  value: any,
+  indentation?: number | string,
+  separator?: number | string
+) {
   if (!value || typeof value != "object") {
     throw new TypeError(`Expected object got ${typeof value}`)
   }
   let stack = []
   let indent = ""
-  let gap
-  if (!space) {
-    gap = "  "
-  } else if (typeof space == "number") {
-    gap = "".padStart(space)
-  } else if (typeof space == "string") {
-    if (!/^\s+$/.test(space)) {
+  let gap, sep
+  let lineBreak = "\n"  
+  if (typeof indentation == "number") {
+    gap = "".padStart(Math.min(indentation, 10))
+  } else if (typeof indentation == "string") {
+    // Empty string, omit line breaks
+    if (indentation == "") {
+      lineBreak = " "
+      gap = " "
+    } else if (!/^\s+$/.test(indentation)) {
       throw new TypeError(
-        "space has to be a string containing only whitespace characters"
+        "indentation has to be a string containing only whitespace characters"
       )
+    } else {
+      gap = indentation.substring(0, 10)
     }
-    gap = space.substring(0, 10)
-  }
-  if (!seperator) {
-    seperator = "\t"
   } else {
-    if (!/^\s+$/.test(seperator)) {
-      throw new TypeError(
-        "seperator has to be a string containing only whitespace characters"
-      )
-    }
+    gap = "  "
   }
 
-  let datobject = {}
-  datobject[""] = value
-  return serialize("", datobject, gap, indent, seperator)
+  if (typeof separator == "number") {
+    sep = "".padStart(Math.min(separator, 10))
+  } else if (typeof separator == "string") {
+    if (!/^\s+$/.test(separator)) {
+      throw new TypeError(
+        "separator has to be a string containing only whitespace characters"
+      )
+    } else {
+      sep = separator
+    }
+  } else {
+    sep = "\t"
+  }
+
+  let dataObject = {}
+  dataObject[""] = value
+
+  // console.log(`gap "${gap}", indent "${indent}", separator "${separator}", lineBreak "${lineBreak}", `)
+  return serialize("", dataObject, gap, indent, sep, lineBreak)
 }
 
-function serialize(key, obj: object, whitespace, indentation, seperator) {
+// a bit like JSON.stringify spec
+function serialize(
+  key,
+  obj: object,
+  whitespace: string,
+  indentation: string,
+  separator: string,
+  linebreak: string
+) {
   let value: any = obj[key]
   let prefix = indentation
   indentation += whitespace
@@ -235,41 +277,58 @@ function serialize(key, obj: object, whitespace, indentation, seperator) {
     return quote("" + value)
   } else {
     let results = []
-    for (let subkey in value) {
-      if (Array.isArray(value[subkey])) {
-        let arr = value[subkey]
+    for (let subKey in value) {
+      if (Array.isArray(value[subKey])) {
+        let arr = value[subKey]
         for (let i = 0; i < arr.length; i++) {
-          let elem = serialize(i, arr, whitespace, indentation, seperator)
+          let elem = serialize(
+            i,
+            arr,
+            whitespace,
+            indentation,
+            separator,
+            linebreak
+          )
           if (typeof arr[i] == "object") {
             results.push(
               `${quote(
-                subkey
-              )}${whitespace}{\n${indentation}${elem}\n${prefix}}`
+                subKey
+              )}${whitespace}{${linebreak}${indentation}${elem}${linebreak}${prefix}}`
             )
           } else {
-            results.push(`${quote(subkey)}${whitespace}${elem}`)
+            results.push(`${quote(subKey)}${separator}${elem}`)
           }
         }
-      } else if (typeof value[subkey] == "object") {
-        let elem = serialize(subkey, value, whitespace, indentation, seperator)
+      } else if (typeof value[subKey] == "object") {
+        let elem = serialize(
+          subKey,
+          value,
+          whitespace,
+          indentation,
+          separator,
+          linebreak
+        )
         results.push(
-          `${quote(subkey)}${whitespace}{\n${indentation}${elem}\n${prefix}}`
+          `${quote(
+            subKey
+          )}${separator}{${linebreak}${indentation}${elem}${linebreak}${prefix}}`
         )
       } else {
-        let elem = serialize(subkey, value, whitespace, indentation, seperator)
-        results.push(`${quote(subkey)}${"\t"}${elem}`)
+        let elem = serialize(
+          subKey,
+          value,
+          whitespace,
+          indentation,
+          separator,
+          linebreak
+        )
+        results.push(`${quote(subKey)}${separator}${elem}`)
       }
     }
-    return results.join(`\n${prefix}`)
+    return results.join(`${linebreak}${prefix}`)
   }
 }
 
 function quote(str: string): string {
   return `"${str}"`
-}
-
-// const VDF =
-export = {
-  parse: parse,
-  stringify: stringify,
 }

@@ -1,9 +1,11 @@
+// a comment at the top
 "FirstRootKey"  {
   "types"  {
     "int"	"1234"
     "float"	"12.123123"
     "boolean"	"true"
   }
+  // a comment in between
   "array"  "i am in an array"
   "array"  "i will also be in the array"
   "array"  "somebody said something about arrays?"
@@ -15,4 +17,5 @@
   "quotes"  {
     "\"quotes in the key\""	"\"quotes in the value\""
   }
+  "//hello value" "//oh hello to you too key"
 }

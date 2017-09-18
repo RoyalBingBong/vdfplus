@@ -1,11 +1,13 @@
 {
   "name": "vdfplus",
   "version": "1.0.0",
-  "description": "",
+  "description": "Converted Valve's KeyValue format to JSON and back",
   "main": "lib/vdfplus.js",
   "bin": "lib/vdfplus.cli.js",
   "types": "lib/vdfplus.d.ts",
   "scripts": {
+    "clean": "rimraf lib/",
+    "build": "npm run clean && npm run tsc && npm run web",
     "web": "browserify lib/vdfplus.js -s VDF > lib/vdfplus.web.js",
     "postweb": "uglifyjs lib/vdfplus.web.js -c -o lib/vdfplus.web.min.js",
     "tsc": "tsc",
@@ -14,7 +16,7 @@
     "testcli": "ts-node node_modules/tape/bin/tape test/vdfplus.cli.test.ts",
     "test:raw": "ts-node node_modules/tape/bin/tape test/**/*.ts"
   },
-  "keywords": [],
+  "keywords": ["valve", "vdf", "keyvalue", "json", "cli"],
   "author": "",
   "license": "ISC",
   "devDependencies": {

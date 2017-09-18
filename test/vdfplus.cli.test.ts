@@ -46,7 +46,7 @@ test("cli - pipe vdf in, pipe json out", t => {
 test("cli - pipe vdf in, json file out", t => {
   t.plan(1)
   let outfile = join(outputDirectory, "out.json")
-  let vdfplus = spawn(process.argv[0], [clijs, "-", "-o", outfile])
+  let vdfplus = spawn(process.argv[0], [clijs, "-", outfile])
   let vdfRead = createReadStream(vdftestfile, "utf8")
   vdfRead.pipe(vdfplus.stdin)
 
@@ -68,7 +68,7 @@ test("cli - pipe vdf in, json file out", t => {
 test("cli - json file in, vdf file out", t => {
   t.plan(1)
   let outfile = join(outputDirectory, "out.vdf")
-  let vdfplus = spawn(process.argv[0], [clijs, jsontestfile, outfile, "-v"])
+  let vdfplus = spawn(process.argv[0], [clijs, "-v", jsontestfile, outfile])
 
   // vdfplus.stderr.on("data", err => {
   //   t.fail(err.toString())
@@ -91,8 +91,6 @@ test("cli - invalid format", t => {
     t.end()
   })
 })
-
-
 
 test.onFinish(() => {
   rimraf.sync(outputDirectory)

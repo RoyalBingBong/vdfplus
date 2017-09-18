@@ -15,24 +15,29 @@ cmd._name = "vdfplus"
 cmd
   .version(version)
   .usage("[options] <input> <output>")
-  .option("-j, --json", "VDF to JSON (default behaviur)")
+  .option("-j, --json", "VDF to JSON (default behavior)")
   .option("-v, --vdf", "JSON to VDF")
-  .option("-o, --out <file>", "output to <file>")
   .option(
-    "-i, --indentation <charornumber>",
-    "indentation for the output. number or whitespace characters. defaults to 2 spaces"
+    "-d, --indentation <char or number>",
+    "indentation for the VDF/JSON. number or whitespace characters. defaults to 2 spaces"
   )
   .option(
-    "-s, --seperator <char>",
-    "space between key-value pairs (VDF only). defaults to '\\t'"
+    "-s, --separator <char>",
+    "space between VDF key-value pairs. defaults to '\\t'"
   )
-  .option("-e, --encoding <encoding>", "encoding of hte input file. defaults to 'utf8'")
-  .option("-n, --notypes", "disable JSON types. all values will be strings")
+  .option("-e, --encoding <encoding>", "encoding of input. defaults to 'utf8'")
+  .option(
+    "-o, --output-encoding <encoding>",
+    "encoding of the output. defaults to 'utf8'"
+  )
+  .option("-n, --no-types", "disable JSON types. all values will be strings")
 
 cmd.parse(process.argv)
 
 if (cmd.args.length == 0) {
-  console.error(`No input specified. Pass a file or use "-" to allow piping`)
+  console.error(
+    `No input specified. Pass an input file or use "-" to enable piping in data`
+  )
   cmd.help()
   process.exit(1)
 }
@@ -40,38 +45,45 @@ if (cmd.args.length == 0) {
 // Commander defaults
 cmd.json = cmd.json || true
 cmd.encoding = cmd.encoding || "utf8"
-cmd.seperator = cmd.seperator || "\t"
-if (cmd.seperator) {
-  cmd.seperator = cmd.seperator.replace(/\\t/g, "\t")
+cmd.outputEncoding = cmd.outputEncoding || "utf8"
+
+cmd.indentation = typeof cmd.indentation == "string" ? cmd.indentation : 2
+
+
+
+if (cmd.separator) {
+  if (/\d+/.test(cmd.separator)) {
+    cmd.separator = parseInt(cmd.separator)
+  } else {
+    cmd.separator = cmd.separator.replace(/\\t/g, "\t")
+  }
 } else {
-  cmd.seperator = "\t"
+  cmd.separator = "\t"
 }
-if (cmd.indentation) {
-  if (/\d/.test(cmd.indentation)) {
+
+if (typeof cmd.indentation == "string") {
+  if (/\d+/.test(cmd.indentation)) {
     cmd.indentation = parseInt(cmd.indentation)
+  } else if (cmd.indentation == "") {
+    cmd.indentation = null
   } else {
     cmd.indentation = cmd.indentation.replace(/\\t/g, "\t")
   }
-} else {
-  cmd.indentation = 2
 }
 
-let types = cmd.notypes != undefined ? false : true
+let types = cmd.noTypes != undefined ? false : true
+let [inFile, outFile] = cmd.args
+let pipeIn = inFile == "-"
+let pipeOut = outFile == undefined
 
-let [infile, outfile] = cmd.args
-outfile = outfile || cmd.out
-
-let pipein = infile == "-"
-let pipeout = outfile == undefined
 // not piping, input does not exist
-if (!pipein && !checkFile(infile)) {
-  console.error(`Could not find file: "${infile}"`)
+if (!pipeIn && !checkFile(inFile)) {
+  console.error(`Could not find file: "${inFile}"`)
   process.exit()
 }
 // no pipe, so we read the file
-// console.error("pipein", pipein)
-if (!pipein) {
-  let input = readFile(infile, cmd.encoding)
+if (!pipeIn) {
+  let input = readFile(inFile, cmd.encoding)
   processInput(input)
 } else {
   // read from stdin
@@ -80,21 +92,23 @@ if (!pipein) {
     input += chunk
   })
   process.stdin.on("end", () => {
-    processInput(input)
+    let encodedInput = Buffer.from(input).toString(cmd.encoding)
+    processInput(encodedInput)
   })
 }
 
-function processInput(inputdata: string) {
+function processInput(inputData: string) {
   let data
   if (cmd.vdf) {
-    data = toVDF(inputdata)
+    data = toVDF(inputData, cmd.indentation, cmd.separator)
   } else {
-    data = toJSON(inputdata)
+    data = toJSON(inputData, cmd.indentation)
   }
-  if (!pipeout) {
-    saveTo(outfile, data, cmd.encoding)
+  if (!pipeOut) {
+    saveTo(outFile, data, cmd.outputEncoding)
     process.exit()
   } else {
+    let encodedData = Buffer.from(data).toString(cmd.outputEncoding)
     process.stdout.write(data)
     process.exit()
   }
@@ -122,20 +136,27 @@ function pathCheck(file: string): string {
   return file
 }
 
-function toJSON(input: string): string {
+function toJSON(input: string, indentation: string | number): string {
   try {
-    let vdfobj = VDF.parse(input, types)
-    return JSON.stringify(vdfobj, null, cmd.indentation)
+    let vdf = VDF.parse(input, types)
+    return JSON.stringify(vdf, null, indentation)
   } catch (e) {
     console.error(e.message)
     process.exit(1)
   }
 }
 
-function toVDF(input: string): string {
+function toVDF(
+  input: string,
+  indentation: string | number,
+  sep: string | number
+): string {
   try {
     let json = JSON.parse(input)
-    return VDF.stringify(json, cmd.indentation, cmd.seperator)
+    if (indentation == null) {
+      indentation = ""
+    }
+    return VDF.stringify(json, indentation, sep)
   } catch (e) {
     console.error(e.message)
     process.exit(1)

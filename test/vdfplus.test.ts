@@ -14,6 +14,8 @@ const ti2017vdffile = join(
 const vdftestdata = readFileSync(vdftestfile, "utf8")
 const vdfti2017data = readFileSync(ti2017vdffile, "utf8")
 
+
+
 test("parse", t => {
   t.plan(3)
   let obj = VDF.parse(vdftestdata)
