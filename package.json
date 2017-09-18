@@ -19,12 +19,23 @@
   },
   "keywords": [
     "valve",
+    "steam",
     "vdf",
     "keyvalue",
     "json",
     "cli"
   ],
-  "author": "",
+  "directories": {
+    "example": "examples",
+    "test": "test"
+  },
+  "author": "David Koch <david-k@mail.de>",
+  "url": "https://github.com/RoyalBingBong/vdfplus/issues",
+  "homepage": "https://github.com/RoyalBingBong/vdfplus#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RoyalBingBong/vdfplus.git"
+  },
   "license": "ISC",
   "devDependencies": {
     "@types/commander": "^2.9.2",
